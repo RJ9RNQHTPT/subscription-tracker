@@ -8,21 +8,24 @@ const jwt = require('jsonwebtoken');
 const cron = require('node-cron'); // Import node-cron for scheduling tasks
 const nodemailer = require('nodemailer'); // Import nodemailer for sending emails
 
-const User = require('./models/user'); // Import User model
-const Subscription = require('./models/subscription'); // Import Subscription model
+// Import Models
+const User = require('./models/user');
+const Subscription = require('./models/subscription');
 
 // Email-Sending Function
 const sendReminderEmail = async (email, subscription) => {
   const transporter = nodemailer.createTransport({
-    service: 'gmail', // Change this to your preferred email service
+    service: 'gmail', // Gmail email service
     auth: {
-      user: 'your-email@gmail.com', // Replace with your email
-      pass: 'your-email-password', // Replace with your email password
+      user: process.env.EMAIL_USER, // Use EMAIL_USER from .env
+      pass: process.env.EMAIL_PASS, // Use EMAIL_PASS from .env
     },
+    debug: true, // Enable debugging
+    logger: true, // Log email details to the console
   });
 
   const mailOptions = {
-    from: 'your-email@gmail.com',
+    from: process.env.EMAIL_USER, // Sender email from .env
     to: email,
     subject: 'Subscription Reminder',
     text: `Hi! Your subscription to "${subscription.serviceName}" will end on ${subscription.endDate}.`,
@@ -40,11 +43,11 @@ const sendReminderEmail = async (email, subscription) => {
 const app = express();
 app.use(express.json()); // Middleware to parse JSON requests
 
-// MongoDB connection
-mongoose.connect(process.env.MONGODB_URI)
+// MongoDB Connection
+mongoose
+  .connect(process.env.MONGODB_URI)
   .then(() => console.log('✅ MongoDB connected'))
   .catch((error) => console.error('❌ MongoDB connection error:', error));
-
 
 // JWT Verification Middleware
 const verifyJWT = (req, res, next) => {
@@ -99,7 +102,6 @@ app.get('/protected', verifyJWT, (req, res) => {
   res.status(200).json({ message: 'You have accessed a protected route!', userId: req.userId });
 });
 
-// Subscriptions routes
 app.post('/subscriptions', verifyJWT, async (req, res) => {
   try {
     const { serviceName, startDate, endDate } = req.body;
@@ -111,7 +113,7 @@ app.post('/subscriptions', verifyJWT, async (req, res) => {
   }
 });
 
-// Subscription reminder scheduler
+// Subscription Reminder Scheduler
 cron.schedule('* * * * *', async () => {
   console.log('🔔 Running subscription reminder check...');
   const today = new Date();
@@ -134,6 +136,7 @@ cron.schedule('* * * * *', async () => {
   }
 });
 
-// Start the server
+// Start the Server
 const PORT = 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
