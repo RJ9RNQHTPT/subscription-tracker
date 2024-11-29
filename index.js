@@ -5,8 +5,9 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const cron = require('node-cron'); // Import node-cron for scheduling tasks
-const nodemailer = require('nodemailer'); // Import nodemailer for sending emails
+const cron = require('node-cron');
+const nodemailer = require('nodemailer');
+const Joi = require('joi'); // Import Joi for validation
 
 // Import Models
 const User = require('./models/user');
@@ -15,17 +16,15 @@ const Subscription = require('./models/subscription');
 // Email-Sending Function
 const sendReminderEmail = async (email, subscription) => {
   const transporter = nodemailer.createTransport({
-    service: 'gmail', // Gmail email service
+    service: 'gmail',
     auth: {
-      user: process.env.EMAIL_USER, // Use EMAIL_USER from .env
-      pass: process.env.EMAIL_PASS, // Use EMAIL_PASS from .env
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
     },
-    debug: true, // Enable debugging
-    logger: true, // Log email details to the console
   });
 
   const mailOptions = {
-    from: process.env.EMAIL_USER, // Sender email from .env
+    from: process.env.EMAIL_USER,
     to: email,
     subject: 'Subscription Reminder',
     text: `Hi! Your subscription to "${subscription.serviceName}" will end on ${subscription.endDate}.`,
@@ -41,7 +40,7 @@ const sendReminderEmail = async (email, subscription) => {
 
 // Initialize Express app
 const app = express();
-app.use(express.json()); // Middleware to parse JSON requests
+app.use(express.json());
 
 // MongoDB Connection
 mongoose
@@ -64,12 +63,35 @@ const verifyJWT = (req, res, next) => {
   }
 };
 
+// Joi Schemas for Validation
+const registerSchema = Joi.object({
+  email: Joi.string().email().required(),
+  password: Joi.string().min(8).required(),
+});
+
+const loginSchema = Joi.object({
+  email: Joi.string().email().required(),
+  password: Joi.string().required(),
+});
+
+const subscriptionSchema = Joi.object({
+  serviceName: Joi.string().required(),
+  startDate: Joi.date().required(),
+  endDate: Joi.date().greater(Joi.ref('startDate')).required(),
+});
+
 // Routes
+
+// [Route: Home]
 app.get('/', (req, res) => {
   res.send('Welcome to Subscription Tracker API');
 });
 
+// [Route: Register]
 app.post('/register', async (req, res) => {
+  const { error } = registerSchema.validate(req.body);
+  if (error) return res.status(400).json({ error: error.details[0].message });
+
   try {
     const { email, password } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -82,7 +104,11 @@ app.post('/register', async (req, res) => {
   }
 });
 
+// [Route: Login]
 app.post('/login', async (req, res) => {
+  const { error } = loginSchema.validate(req.body);
+  if (error) return res.status(400).json({ error: error.details[0].message });
+
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
@@ -98,11 +124,16 @@ app.post('/login', async (req, res) => {
   }
 });
 
+// [Route: Protected]
 app.get('/protected', verifyJWT, (req, res) => {
   res.status(200).json({ message: 'You have accessed a protected route!', userId: req.userId });
 });
 
+// [Route: Create Subscription]
 app.post('/subscriptions', verifyJWT, async (req, res) => {
+  const { error } = subscriptionSchema.validate(req.body);
+  if (error) return res.status(400).json({ error: error.details[0].message });
+
   try {
     const { serviceName, startDate, endDate } = req.body;
     const subscription = new Subscription({ userId: req.userId, serviceName, startDate, endDate });
@@ -113,8 +144,63 @@ app.post('/subscriptions', verifyJWT, async (req, res) => {
   }
 });
 
+// [Route: Get Subscriptions]
+app.get('/subscriptions', verifyJWT, async (req, res) => {
+  try {
+    const subscriptions = await Subscription.find({ userId: req.userId });
+    res.status(200).json(subscriptions);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to retrieve subscriptions' });
+  }
+});
+
+// [Route: Update Subscription]
+app.put('/subscriptions/:id', verifyJWT, async (req, res) => {
+  const { id } = req.params;
+  const { error } = subscriptionSchema.validate(req.body);
+  if (error) return res.status(400).json({ error: error.details[0].message });
+
+  try {
+    const { serviceName, startDate, endDate } = req.body;
+
+    const updatedSubscription = await Subscription.findByIdAndUpdate(
+      id,
+      { serviceName, startDate, endDate },
+      { new: true }
+    );
+
+    if (!updatedSubscription) {
+      return res.status(404).json({ error: 'Subscription not found' });
+    }
+
+    res.status(200).json({
+      message: 'Subscription updated successfully',
+      subscription: updatedSubscription,
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update subscription' });
+  }
+});
+
+// [Route: Delete Subscription]
+app.delete('/subscriptions/:id', verifyJWT, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deletedSubscription = await Subscription.findByIdAndDelete(id);
+
+    if (!deletedSubscription) {
+      return res.status(404).json({ error: 'Subscription not found' });
+    }
+
+    res.status(200).json({ message: 'Subscription deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete subscription' });
+  }
+});
+
 // Subscription Reminder Scheduler
-cron.schedule('* * * * *', async () => {
+cron.schedule('0 9 * * *', async () => {
   console.log('🔔 Running subscription reminder check...');
   const today = new Date();
   const nextWeek = new Date(today);
@@ -127,7 +213,7 @@ cron.schedule('* * * * *', async () => {
 
     subscriptions.forEach((subscription) => {
       console.log(`📬 Reminder: Subscription "${subscription.serviceName}" ends on ${subscription.endDate}`);
-      sendReminderEmail('user-email@example.com', subscription); // Replace with the user's email
+      sendReminderEmail(process.env.EMAIL_USER, subscription);
     });
 
     console.log('✅ Reminder check completed.');
@@ -139,4 +225,7 @@ cron.schedule('* * * * *', async () => {
 // Start the Server
 const PORT = 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+
+
 
