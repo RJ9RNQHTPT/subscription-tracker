@@ -6,12 +6,7 @@ const uri = process.env.MONGODB_URI;
 console.log('Testing connection to MongoDB...');
 console.log('URI:', uri);
 
-mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => {
-    console.log('✅ Connection successful!');
-    process.exit(0);
-  })
-  .catch((error) => {
-    console.error('❌ Connection failed:', error.message);
-    process.exit(1);
-  });
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log('✅ MongoDB connected'))
+  .catch((error) => console.error('❌ MongoDB connection error:', error));
+
