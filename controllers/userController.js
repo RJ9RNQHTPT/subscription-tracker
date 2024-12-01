@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user'); // Adjusted path
 
 // Register a new user
+// Register a new user
 const registerUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -12,9 +13,11 @@ const registerUser = async (req, res) => {
     await user.save();
     res.status(201).json({ message: 'User registered successfully' });
   } catch (error) {
+    console.error('❌ Registration error:', error); // Add this line
     res.status(500).json({ error: 'Failed to register user' });
   }
 };
+
 
 // Login a user
 const loginUser = async (req, res) => {

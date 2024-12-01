@@ -9,11 +9,9 @@ const subscriptionRoutes = require('./routes/subscriptionRoutes');
 const app = express();
 app.use(express.json());
 
-// MongoDB connection
-mongoose.connect(process.env.MONGODB_URI, { })
+mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('✅ MongoDB connected'))
   .catch((error) => console.error('❌ MongoDB connection error:', error));
-
 
 app.use('/api/users', userRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
