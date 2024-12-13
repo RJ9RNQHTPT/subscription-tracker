@@ -8,14 +8,22 @@ const registerUser = async (req, res) => {
     const { email, password } = req.body;
     console.log(`Registering user: ${email}`); // Debugging log
 
+    // Log request body
+    console.log(`Request body:`, req.body);
+
     const hashedPassword = await bcrypt.hash(password, 10);
+    console.log(`Password hashed successfully`);
+
     const user = new User({ email, password: hashedPassword });
+    console.log(`New user created:`, user);
 
     await user.save();
-    console.log(`User registered successfully: ${email}`); // Debugging log
+    console.log(`User registered successfully: ${email}`);
+
     res.status(201).json({ message: 'User registered successfully' });
   } catch (error) {
     console.error('Registration error:', error.message); // Debugging log
+
     if (error.code === 11000) {
       // Duplicate email error
       res.status(400).json({ error: 'Email already in use' });
@@ -24,6 +32,7 @@ const registerUser = async (req, res) => {
     }
   }
 };
+
 
 // Login a user
 const loginUser = async (req, res) => {

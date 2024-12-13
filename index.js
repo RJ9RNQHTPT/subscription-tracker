@@ -13,9 +13,18 @@ const app = express();
 app.use(express.json());
 
 // MongoDB connection
-mongoose.connect(process.env.MONGODB_URI)
+mongoose.connect(process.env.MONGODB_URI, {
+  serverSelectionTimeoutMS: 10000, // 10 seconds timeout
+  connectTimeoutMS: 10000, // 10 seconds connection timeout
+})
   .then(() => console.log('✅ MongoDB connected'))
-  .catch((error) => console.error('❌ MongoDB connection error:', error));
+  .catch((error) => {
+    console.error('❌ MongoDB connection error:', error.message);
+    process.exit(1); // Exit the application if the database connection fails
+  });
+
+
+
 
 // Function to run the subscription reminder check
 const runSubscriptionReminderCheck = async () => {
@@ -45,7 +54,31 @@ const runSubscriptionReminderCheck = async () => {
 };
 
 // Schedule the reminder email task to run daily at midnight
-cron.schedule('0 0 * * *', runSubscriptionReminderCheck);
+cron.schedule('0 0 * * *', async () => {
+  console.log('🔔 Running subscription reminder check...');
+  const now = new Date();
+  const sevenDaysFromNow = new Date();
+  sevenDaysFromNow.setDate(now.getDate() + 7);
+
+  try {
+    console.log('🔍 Fetching subscriptions ending within 7 days...');
+    const subscriptions = await Subscription.find({
+      endDate: { $lte: sevenDaysFromNow, $gte: now },
+    });
+
+    console.log('✅ Subscriptions fetched:', subscriptions);
+
+    for (const subscription of subscriptions) {
+      console.log(`📧 Sending email to user ${subscription.userId}...`);
+      await sendReminderEmail(subscription.userId, subscription);
+    }
+
+    console.log('✅ Reminder check completed.');
+  } catch (error) {
+    console.error('❌ Error while running subscription reminders:', error.message);
+  }
+});
+
 
 // Manually trigger the function for testing purposes
 runSubscriptionReminderCheck();
