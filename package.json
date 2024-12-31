@@ -1,23 +1,28 @@
 {
   "name": "subscription-tracker",
   "version": "1.0.0",
+  "description": "",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "debug": "node index.js",
+    "test": "jest"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
-    "bcrypt": "^5.1.1",
-    "dotenv": "^16.4.5",
+    "bcrypt": "^5.1.0",
+    "dotenv": "^16.4.7",
     "express": "^4.21.1",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.8.3",
+    "mongoose": "^6.8.3",
     "node-cron": "^3.0.3",
     "nodemailer": "^6.9.16"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0"
   }
 }
