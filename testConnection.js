@@ -7,10 +7,14 @@ console.log('Testing connection to MongoDB...');
 console.log('URI:', uri);
 
 mongoose.connect(uri, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 5000 // Adjust timeout as needed
+  serverSelectionTimeoutMS: 30000, // Wait up to 30 seconds for a server selection
+  socketTimeoutMS: 30000, // Wait 30 seconds for socket operations
 })
-  .then(() => console.log('✅ MongoDB connected'))
-  .catch((error) => console.error('❌ MongoDB connection error:', error));
-
+  .then(() => {
+    console.log('✅ MongoDB connected');
+    process.exit(0); // Exit after successful connection
+  })
+  .catch((error) => {
+    console.error('❌ MongoDB connection error:', error);
+    process.exit(1); // Exit on failure
+  });

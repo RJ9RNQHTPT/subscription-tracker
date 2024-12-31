@@ -6,33 +6,32 @@ const User = require('../models/user'); // Import the User model
 const registerUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log(`Registering user: ${email}`); // Debugging log
+    console.log(`Incoming request to register user: ${email}`);
 
-    // Log request body
-    console.log(`Request body:`, req.body);
-
+    // Hash password
+    console.log('Hashing password...');
     const hashedPassword = await bcrypt.hash(password, 10);
-    console.log(`Password hashed successfully`);
+    console.log('Password hashed successfully.');
 
+    // Save user
+    console.log('Creating new user...');
     const user = new User({ email, password: hashedPassword });
-    console.log(`New user created:`, user);
+    console.log('User object before saving:', user);
 
     await user.save();
-    console.log(`User registered successfully: ${email}`);
+    console.log('User saved successfully:', user);
 
     res.status(201).json({ message: 'User registered successfully' });
   } catch (error) {
-    console.error('Registration error:', error.message); // Debugging log
+    console.error('Error during registration:', error.message);
 
     if (error.code === 11000) {
-      // Duplicate email error
       res.status(400).json({ error: 'Email already in use' });
     } else {
-      res.status(500).json({ error: 'Failed to register user' });
+      res.status(500).json({ error: `Failed to register user: ${error.message}` });
     }
   }
 };
-
 
 // Login a user
 const loginUser = async (req, res) => {
