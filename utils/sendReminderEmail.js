@@ -73,5 +73,5 @@ const sendReminderEmails = async () => {
   }
 };
 
-// Run the function
-sendReminderEmails();
+// Export the main function
+module.exports = sendReminderEmails;
