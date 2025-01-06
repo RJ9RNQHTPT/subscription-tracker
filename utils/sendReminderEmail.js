@@ -35,7 +35,8 @@ const sendReminderEmail = async (recipientEmail, subscription) => {
     await transporter.sendMail(mailOptions);
     console.log(`📧 Reminder email sent to ${recipientEmail}`);
   } catch (error) {
-    console.error('❌ Failed to send email:', error);
+    console.error(`❌ Failed to send email to ${recipientEmail}:`, error.message);
+    console.error('Full Error Details:', error);
   }
 };
 

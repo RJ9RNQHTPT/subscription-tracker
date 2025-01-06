@@ -1,9 +1,3 @@
-process.on('warning', (warning) => { 
-  if (warning.name === 'DeprecationWarning') {
-    console.warn(warning.stack);
-  }
-});
-
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
@@ -12,45 +6,51 @@ const userRoutes = require('./routes/userRoutes');
 const subscriptionRoutes = require('./routes/subscriptionRoutes');
 const sendReminderEmail = require('./utils/sendReminderEmail'); // Import the reminder function
 
+// Load environment variables
 dotenv.config();
 
+// Initialize Express app
 const app = express();
 app.use(express.json());
 
-// Enable Mongoose debug mode for logging queries (optional)
-mongoose.set('debug', true);
-mongoose.set('strictQuery', false); // Suppress Mongoose strictQuery warning
+// Utility function to get the current timestamp for logs
+const getCurrentTimestamp = () => {
+    return new Date().toLocaleString();
+};
+
+// Suppress Mongoose strictQuery warning
+mongoose.set('strictQuery', true);
 
 // MongoDB connection
 mongoose
-  .connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => {
-    console.log('✅ MongoDB connected');
-  })
-  .catch((error) => {
-    console.error('❌ MongoDB connection error:', error.message);
-  });
+    .connect(process.env.MONGODB_URI, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+    .then(() => {
+        console.log(`[${getCurrentTimestamp()}] ✅ MongoDB connected`);
+    })
+    .catch((error) => {
+        console.error(`[${getCurrentTimestamp()}] ❌ MongoDB connection failed:`, error.message);
+    });
 
-// Routes
+// API Routes
 app.use('/api/users', userRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 
-// Schedule a cron job to run sendReminderEmail.js daily at 9:00 AM
+// Schedule the cron job to send email reminders daily at 9:00 AM
 cron.schedule('0 9 * * *', async () => {
-  console.log('⏰ Cron job started: Sending reminder emails...');
-  try {
-    require('./utils/sendReminderEmail'); // Execute the script
-  } catch (error) {
-    console.error('❌ Error executing reminder emails:', error.message);
-  }
-  console.log('✅ Cron job completed: Reminder emails sent');
+    console.log(`[${getCurrentTimestamp()}] 🕒 Starting daily email reminders task...`);
+    try {
+        await sendReminderEmail();
+        console.log(`[${getCurrentTimestamp()}] ✅ Daily email reminders task completed successfully.`);
+    } catch (error) {
+        console.error(`[${getCurrentTimestamp()}] ❌ Error executing daily email reminders task:`, error.message);
+    }
 });
 
-// Server
+// Start the server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
+    console.log(`[${getCurrentTimestamp()}] ✅ Server running on port ${PORT}`);
 });
