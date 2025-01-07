@@ -1,8 +1,8 @@
 const cors = require('cors');
 const express = require('express');
 
-const cors = require('cors');
-const express = require('express');
+// Initialize Express app
+const app = express();
 
 // Allow specific origins
 const corsOptions = {
@@ -11,8 +11,8 @@ const corsOptions = {
     allowedHeaders: ['Content-Type', 'Authorization'], // Allow specific headers
 };
 
-app.use(cors(corsOptions));
-
+app.use(cors(corsOptions)); // Apply CORS configuration
+app.use(express.json()); // Parse JSON bodies
 
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
@@ -23,12 +23,6 @@ const sendReminderEmail = require('./utils/sendReminderEmail'); // Import the re
 
 // Load environment variables
 dotenv.config();
-
-// Initialize Express app
-const app = express();
-app.use(express.json());
-app.use(cors());
-
 
 // Utility function to get the current timestamp for logs
 const getCurrentTimestamp = () => {
@@ -71,3 +65,4 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`[${getCurrentTimestamp()}] ✅ Server running on port ${PORT}`);
 });
+
