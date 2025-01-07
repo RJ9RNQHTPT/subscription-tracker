@@ -1,5 +1,15 @@
+// Import required modules
 const cors = require('cors');
 const express = require('express');
+const mongoose = require('mongoose');
+const dotenv = require('dotenv');
+const cron = require('node-cron');
+const userRoutes = require('./routes/userRoutes');
+const subscriptionRoutes = require('./routes/subscriptionRoutes');
+const sendReminderEmail = require('./utils/sendReminderEmail'); // Import the reminder function
+
+// Load environment variables
+dotenv.config();
 
 // Initialize Express app
 const app = express();
@@ -11,18 +21,9 @@ const corsOptions = {
     allowedHeaders: ['Content-Type', 'Authorization'], // Allow specific headers
 };
 
-app.use(cors(corsOptions)); // Apply CORS configuration
-app.use(express.json()); // Parse JSON bodies
-
-const mongoose = require('mongoose');
-const dotenv = require('dotenv');
-const cron = require('node-cron');
-const userRoutes = require('./routes/userRoutes');
-const subscriptionRoutes = require('./routes/subscriptionRoutes');
-const sendReminderEmail = require('./utils/sendReminderEmail'); // Import the reminder function
-
-// Load environment variables
-dotenv.config();
+// Middleware
+app.use(cors(corsOptions)); // Use CORS with the configured options
+app.use(express.json()); // Enable JSON body parsing
 
 // Utility function to get the current timestamp for logs
 const getCurrentTimestamp = () => {
@@ -65,4 +66,3 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`[${getCurrentTimestamp()}] ✅ Server running on port ${PORT}`);
 });
-
