@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://my-subscription-reminder.herokuapp.com'; // Replace with your deployed backend URL
+const API_BASE_URL = 'https://my-subscription-reminder.herokuapp.com/api'; // Add /api prefix
 
 // Fetch and display subscriptions
 async function fetchSubscriptions() {
