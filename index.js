@@ -1,5 +1,19 @@
 const cors = require('cors');
 const express = require('express');
+
+const cors = require('cors');
+const express = require('express');
+
+// Allow specific origins
+const corsOptions = {
+    origin: ['http://127.0.0.1:8080', 'https://my-subscription-reminder.herokuapp.com'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allow specific HTTP methods
+    allowedHeaders: ['Content-Type', 'Authorization'], // Allow specific headers
+};
+
+app.use(cors(corsOptions));
+
+
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const cron = require('node-cron');
