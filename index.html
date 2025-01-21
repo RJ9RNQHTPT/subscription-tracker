@@ -1,62 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Subscription Tracker</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      padding: 20px;
-    }
-    h1, h2 {
-      color: #333;
-    }
-    .subscription {
-      border: 1px solid #ccc;
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 5px;
-    }
-    form {
-      margin-bottom: 20px;
-    }
-    label {
-      display: block;
-      margin-bottom: 5px;
-    }
-    input, button {
-      padding: 8px;
-      margin-bottom: 10px;
-      width: 100%;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription Tracker</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1>Subscription Tracker</h1>
+    <div class="container">
+        <h1>Subscription Tracker</h1>
 
-  <h2>Add a Subscription</h2>
-  <form id="addSubscriptionForm">
-    <label for="serviceName">Service Name:</label>
-    <input type="text" id="serviceName" required>
+        <div id="messageBox" style="display:none; padding:10px; margin-bottom:15px;"></div>
 
-    <label for="startDate">Start Date:</label>
-    <input type="date" id="startDate" required>
+        <div id="addSubscriptionForm">
+            <input type="text" id="serviceName" placeholder="Enter service name">
+            <input type="date" id="startDate">
+            <input type="date" id="endDate">
+            <button id="addSubscriptionButton">Add Subscription</button>
+        </div>
 
-    <label for="endDate">End Date:</label>
-    <input type="date" id="endDate" required>
+        <h2>Current Subscriptions</h2>
 
-    <button type="submit">Add Subscription</button>
-  </form>
+        <label for="dateFormat">Date Format:</label>
+        <select id="dateFormat">
+            <option value="DD/MM/YYYY">DD/MM/YYYY (British)</option>
+            <option value="MM/DD/YYYY">MM/DD/YYYY (American)</option>
+        </select>
 
-  <h2>Current Subscriptions</h2>
-  <div id="subscriptionsList">
-    <p>Loading subscriptions...</p>
-  </div>
-
-  <script src="script.js"></script>
+        <div id="subscriptionsList">Loading subscriptions...</div>
+    </div>
+    <script src="script.js" defer></script>
 </body>
 </html>
+
+
+
+

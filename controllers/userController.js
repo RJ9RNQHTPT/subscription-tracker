@@ -1,35 +1,33 @@
-const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const User = require('../models/user');// Import the User model
+const bcrypt = require('bcrypt');
+const User = require('../models/user');
 
 // Register a new user
 const registerUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log(`Incoming request to register user: ${email}`);
+    console.log(`[DEBUG] Incoming request to register user: ${email}`);
 
-    // Hash password
-    console.log('Hashing password...');
+    // Hash the password
+    console.log('[DEBUG] Hashing password...');
     const hashedPassword = await bcrypt.hash(password, 10);
-    console.log('Password hashed successfully.');
+    console.log('[DEBUG] Password hashed successfully');
 
-    // Save user
-    console.log('Creating new user...');
-    const user = new User({ email, password: hashedPassword });
-    console.log('User object before saving:', user);
+    // Create new user
+    console.log('[DEBUG] Creating new user...');
+    const newUser = new User({
+      email,
+      password: hashedPassword,
+    });
 
-    await user.save();
-    console.log('User saved successfully:', user);
+    console.log('[DEBUG] User object before saving:', newUser);
+    const savedUser = await newUser.save();
+    console.log('[DEBUG] User saved successfully:', savedUser);
 
     res.status(201).json({ message: 'User registered successfully' });
   } catch (error) {
-    console.error('Error during registration:', error.message);
-
-    if (error.code === 11000) {
-      res.status(400).json({ error: 'Email already in use' });
-    } else {
-      res.status(500).json({ error: `Failed to register user: ${error.message}` });
-    }
+    console.error('[DEBUG] Registration error:', error.message);
+    res.status(500).json({ error: 'Error registering user' });
   }
 };
 
@@ -37,7 +35,7 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log(`User attempting login: ${email}`); // Debugging log
+    console.log(`[DEBUG] User attempting login: ${email}`);
 
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ error: 'User not found' });
@@ -45,21 +43,19 @@ const loginUser = async (req, res) => {
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) return res.status(401).json({ error: 'Invalid password' });
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
-    console.log(`User logged in successfully: ${email}`); // Debugging log
-    res.status(200).json({ message: 'Login successful', token });
+    // Generate JWT token with 7-day validity
+    const token = jwt.sign(
+      { userId: user._id, email: user.email }, // Include userId and email
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' } // Extend expiration time to 7 days for testing
+    );
+
+    console.log(`[DEBUG] Token generated for user: ${email}`);
+    res.json({ token });
   } catch (error) {
-    console.error('Login error:', error.message); // Debugging log
-    res.status(500).json({ error: 'Failed to login' });
+    console.error('[DEBUG] Login error:', error.message);
+    res.status(500).json({ error: 'Error logging in' });
   }
 };
 
-// Protected route handler (Optional for reference)
-const protectedRoute = (req, res) => {
-  res.status(200).json({
-    message: 'You have accessed a protected route!',
-    userId: req.userId,
-  });
-};
-
-module.exports = { registerUser, loginUser, protectedRoute };
+module.exports = { registerUser, loginUser };
