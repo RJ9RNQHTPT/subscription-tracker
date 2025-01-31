@@ -5,33 +5,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Subscription Tracker</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png">
+    <link rel="icon" type="image/png" sizes="256x256" href="/favicon-256x256.png">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
 </head>
 <body>
     <div class="container">
         <h1>Subscription Tracker</h1>
-
-        <div id="messageBox" style="display:none; padding:10px; margin-bottom:15px;"></div>
-
-        <div id="addSubscriptionForm">
-            <input type="text" id="serviceName" placeholder="Enter service name">
-            <input type="date" id="startDate">
-            <input type="date" id="endDate">
-            <button id="addSubscriptionButton">Add Subscription</button>
+        
+        <div class="form-section">
+            <input type="text" id="subscriptionName" placeholder="Enter service name">
+            <input type="date" id="subscriptionStartDate">
+            <input type="date" id="subscriptionEndDate">
+            <button id="addSubscription">Add Subscription</button>
+            <p id="formError" class="error-message" style="display:none;"></p>
         </div>
 
-        <h2>Current Subscriptions</h2>
+        <div class="subscriptions-list" id="subscriptionsList">
+            <!-- Subscriptions will be dynamically added here -->
+        </div>
+
+        <p id="loginMessage" class="error-message">No token found. <a href="login.html" id="loginLink">Please log in.</a></p>
 
         <label for="dateFormat">Date Format:</label>
         <select id="dateFormat">
             <option value="DD/MM/YYYY">DD/MM/YYYY (British)</option>
             <option value="MM/DD/YYYY">MM/DD/YYYY (American)</option>
+            <option value="YYYY-MM-DD">YYYY-MM-DD</option>
         </select>
 
-        <div id="subscriptionsList">Loading subscriptions...</div>
+        <div class="toggle-container">
+            <span>Dark Mode</span>
+            <label class="toggle-switch">
+                <input type="checkbox" id="darkModeToggle">
+                <span class="slider"></span>
+            </label>
+        </div>
     </div>
-    <script src="script.js" defer></script>
+    
+    <script src="script.js"></script>
 </body>
 </html>
+
+
+
+
+
 
 
 
